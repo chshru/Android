@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Music</string>
+    <string name="file_path">文件位置</string>
+    <string name="shutdown">关闭</string>
+    <string name="none_music">没有找到音乐</string>
+    <string name="none_music_playing">NONE MUSIC</string>
+</resources>

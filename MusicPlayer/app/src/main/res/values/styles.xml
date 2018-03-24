@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="AppBaseTheme" parent="android:Theme.Material.Light">
+        <item name="android:actionBarStyle">@style/myActionBar</item>
+        <item name="android:colorPrimaryDark">@color/my_bar_color</item>
+        <item name="android:colorForeground">@color/my_bar_color</item>
+        <item name="android:textColorPrimary">@color/my_white_color</item>
+        <item name="android:colorAccent">@color/my_white_color</item>
+        <item name="android:statusBarColor">@color/my_bar_color</item>
+        <item name="android:navigationBarColor">@color/my_bar_color</item>
+    </style>
+    <style name="myActionBar" parent="@android:style/Widget.Material.Light.ActionBar">
+        <item name="android:background">@color/my_bar_color</item>
+        <item name="android:displayOptions">showTitle</item>
+
+    </style>
+
+</resources>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="my_text_color">#5F554E</color>
+    <color name="my_bar_color">#6f7480</color>
+    <color name="my_white_color">#ffffff</color>
+</resources>
