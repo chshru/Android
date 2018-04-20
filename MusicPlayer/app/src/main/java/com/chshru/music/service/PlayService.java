@@ -3,6 +3,7 @@ package com.chshru.music.service;
 import android.app.Service;
 import android.content.Intent;
 import android.media.MediaPlayer;
+import android.os.Binder;
 import android.os.IBinder;
 
 
@@ -20,91 +21,76 @@ import com.chshru.music.datautil.FileCtrl;
 public class PlayService extends Service {
 
 
-    private static PlayService playService;
-    private static MediaPlayer mediaPlayer = new MediaPlayer();
+    private MediaPlayer mPlayer;
+
+    private IBinder binder = new PlayBinder();
+
 
     @Override
     public IBinder onBind(Intent intent) {
-        return null;
+        return binder;
     }
 
-    @Override
-    public int onStartCommand(final Intent intent, int flags, int startId) {
-        playService = this;
-        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer mp) {
-                CtrlPlayer.getInstance(PlayService.this).completion();
-                freshAllView();
-            }
-        });
-        return super.onStartCommand(intent, flags, startId);
-    }
 
-    public static int getAudioSessionId() {
+    public int getAudioSessionId() {
         try {
-            return mediaPlayer.getAudioSessionId();
+            return mPlayer.getAudioSessionId();
         } catch (Exception e) {
             return 0;
         }
     }
 
-    public static void quickRun(int t) {
-        mediaPlayer.seekTo(t);
+    public void seekTo(int t) {
+        mPlayer.seekTo(t);
     }
 
-    public static int getDuration() {
-        return mediaPlayer.getDuration();
+    public int getDuration() {
+        return mPlayer.getDuration();
     }
 
-    public static int getCurDuration() {
-        return mediaPlayer.getCurrentPosition();
+    public int getCurDuration() {
+        return mPlayer.getCurrentPosition();
     }
 
-    public static void prepare(String path) {
+    public void prepare(String path) {
         try {
-            mediaPlayer.reset();
-            mediaPlayer.setDataSource(path);
-            mediaPlayer.prepare();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        freshAllView();
-    }
-
-    public static void freshAllView() {
-        try {
-            FileCtrl.getInstance(playService).saveUserInfo();
-            ListActivity.getListAty().reFreshView();
-            PlayActivity.getPlatAty().freshTextView();
+            mPlayer.reset();
+            mPlayer.setDataSource(path);
+            mPlayer.prepare();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public static void start() {
-        mediaPlayer.start();
-        freshAllView();
+
+    public void start() {
+        mPlayer.start();
     }
 
-    public static void pause() {
-        mediaPlayer.pause();
-        freshAllView();
+    public void pause() {
+        mPlayer.pause();
     }
 
 
     private void freePlayer() {
-        if (mediaPlayer != null) {
-            mediaPlayer.stop();
-            mediaPlayer.release();
-            mediaPlayer = null;
+        if (mPlayer != null) {
+            mPlayer.stop();
+            mPlayer.release();
+            mPlayer = null;
         }
     }
 
     @Override
     public void onDestroy() {
-        freePlayer();
         super.onDestroy();
+        freePlayer();
     }
+
+    class PlayBinder extends Binder {
+        public PlayService getService() {
+            return PlayService.this;
+        }
+    }
+
 }
 
