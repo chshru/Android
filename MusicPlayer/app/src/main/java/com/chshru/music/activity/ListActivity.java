@@ -1,10 +1,14 @@
 package com.chshru.music.activity;
 
 import android.app.Activity;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 
+import android.content.ServiceConnection;
 import android.os.Bundle;
 
+import android.os.IBinder;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ImageView;
@@ -13,11 +17,10 @@ import android.widget.TextView;
 
 import com.chshru.music.R;
 import com.chshru.music.datautil.Config;
-import com.chshru.music.datautil.CtrlPlayer;
+import com.chshru.music.datautil.Player;
 import com.chshru.music.datautil.MusicList;
 import com.chshru.music.service.DialogFactory;
 import com.chshru.music.service.ListAdapter;
-import com.chshru.music.datautil.FileCtrl;
 import com.chshru.music.service.PlayService;
 import com.chshru.music.service.VirtualKey;
 
@@ -29,42 +32,37 @@ import com.chshru.music.service.VirtualKey;
 public class ListActivity extends Activity implements View.OnClickListener {
 
 
-    private ListView listView;
-    private TextView musicName;
-    private ImageView musicStatus;
-    private static ListActivity listActivity;
+    private ListView list;
+    private TextView name;
+    private ImageView pause;
+    private PlayService mService;
+    private MusicList mList;
+    private ListAdapter mAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list);
-
         initialize();
-
     }
 
 
-
     private void initialize() {
-        listActivity = ListActivity.this;
-        musicName = (TextView) findViewById(R.id.runname);
-        musicStatus = (ImageView) findViewById(R.id.pauseicon);
-        listView = (ListView) findViewById(R.id.musicList);
+        name = (TextView) findViewById(R.id.runname);
+        pause = (ImageView) findViewById(R.id.pauseicon);
+        list = (ListView) findViewById(R.id.musicList);
         VirtualKey.assistActivity(findViewById(R.id.musicList));
-        ListAdapter adapter = new ListAdapter(MusicList.getInstance(this).getList(), this);
-        listView.setAdapter(adapter);
+        mList = MusicList.getInstance(this);
+        mAdapter = new ListAdapter(mList.getList(), this);
+        list.setAdapter(mAdapter);
         initializeService();
-        if (!MusicList.getInstance(this).getList().isEmpty()) {
-            setOnClickListener();
-        }
-        reFreshView();
     }
 
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.pauseicon:
-                if (Config.musicPlaying) CtrlPlayer.getInstance(this).pause();
-                else CtrlPlayer.getInstance(this).start();
+                if (Config.musicPlaying) Player.getInstance(this).pause();
+                else Player.getInstance(this).start();
                 break;
             case R.id.runname:
                 Intent playing = new Intent(this, PlayActivity.class);
@@ -74,15 +72,15 @@ public class ListActivity extends Activity implements View.OnClickListener {
     }
 
     private void setOnClickListener() {
-        musicName.setOnClickListener(this);
-        musicStatus.setOnClickListener(this);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        name.setOnClickListener(this);
+        pause.setOnClickListener(this);
+        list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                CtrlPlayer.getInstance(ListActivity.this).choose(position);
+                Player.getInstance(ListActivity.this).choose(position);
             }
         });
-        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+        list.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
                 DialogFactory.getInstance(ListActivity.this).tipsDialog(
@@ -95,40 +93,27 @@ public class ListActivity extends Activity implements View.OnClickListener {
         });
     }
 
+    private ServiceConnection conn = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder binder) {
+            mService = ((PlayService.PlayBinder) binder).getService();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            mService = null;
+        }
+    };
+
 
     private void initializeService() {
-        if (!Config.serviceRunning) {
-            Config.serviceRunning = true;
-            Intent intent = new Intent().setClass(this, PlayService.class);
-            this.startService(intent);
-            if (!MusicList.getInstance(this).getList().isEmpty()) {
-                Config.curPosition = FileCtrl.getInstance(this).getPosition();
-                String path = MusicList.getInstance(this).getList().get(Config.curPosition).getPath();
-                CtrlPlayer.getInstance(this).prepare(path);
-                CtrlPlayer.getInstance(this).quickRun(FileCtrl.getInstance(this).getProcess());
-            }
-        }
-    }
-
-    public void reFreshView() {
-        boolean flag = MusicList.getInstance(this).getList().isEmpty();
-        musicName.setText(flag ? getString(R.string.none_music) :
-                MusicList.getInstance(this).getList().get(Config.curPosition).getName());
-        musicStatus.setImageResource(Config.musicPlaying ? R.drawable.main_run :
-                R.drawable.main_pause);
+        Intent intent = new Intent(this, PlayService.class);
+        bindService(intent, conn, Context.BIND_AUTO_CREATE);
     }
 
     @Override
-    protected void onDestroy() {
-        try {
-            FileCtrl.getInstance(this).saveUserInfo();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        super.onDestroy();
-    }
-
-    public static ListActivity getListAty() {
-        return listActivity;
+    protected void onPause() {
+        super.onPause();
+        unbindService(conn);
     }
 }
