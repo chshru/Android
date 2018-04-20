@@ -1,13 +1,10 @@
 package com.chshru.music.activity;
 
-import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.os.Build;
+
 import android.os.Bundle;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
+
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ImageView;
@@ -35,37 +32,18 @@ public class ListActivity extends Activity implements View.OnClickListener {
     private ListView listView;
     private TextView musicName;
     private ImageView musicStatus;
-    private final int ALL = 1;
     private static ListActivity listActivity;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list);
-        if (hasPermissions()) {
-            initialize();
-        }
+
+        initialize();
+
     }
 
-    private boolean hasPermissions() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (ContextCompat.checkSelfPermission(ListActivity.this,
-                    Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]{
-                        Manifest.permission.READ_EXTERNAL_STORAGE,
-                        Manifest.permission.WRITE_SECURE_SETTINGS,
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                        Manifest.permission.MOUNT_UNMOUNT_FILESYSTEMS,
-                        Manifest.permission.READ_PHONE_STATE,
-                        Manifest.permission.RECORD_AUDIO,
-                        Manifest.permission.PROCESS_OUTGOING_CALLS,
-                        Manifest.permission.INTERNET,
-                }, ALL);
-                return false;
-            }
-        }
-        return true;
-    }
+
 
     private void initialize() {
         listActivity = ListActivity.this;
@@ -117,25 +95,6 @@ public class ListActivity extends Activity implements View.OnClickListener {
         });
     }
 
-    @Override
-    public void onRequestPermissionsResult(int status, String permissions[], int[] results) {
-        switch (status) {
-            case ALL: {
-                boolean success = true;
-                for (int result : results)
-                    if (result != PackageManager.PERMISSION_GRANTED) {
-                        success = false;
-                        break;
-                    }
-                if (success) initialize();
-                else {
-                    DialogFactory.getInstance(this).tipsDialog(
-                            "提示", "接受所有授权才能完成初始化,请重新打开软件", "关闭");
-                }
-                break;
-            }
-        }
-    }
 
     private void initializeService() {
         if (!Config.serviceRunning) {
