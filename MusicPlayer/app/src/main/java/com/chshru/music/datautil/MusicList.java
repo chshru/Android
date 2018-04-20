@@ -17,35 +17,28 @@ import static android.provider.MediaStore.Audio.Media;
  */
 public class MusicList {
 
-    private Context context;
+    private Context mContext;
+    private ArrayList<Music> lists;
 
     private MusicList(Context context) {
-        this.context = context;
+        lists = new ArrayList<>();
+        mContext = context;
+        createMusicList();
     }
 
     public static MusicList getInstance(Context context) {
         return new MusicList(context);
     }
 
-    private void initMusicList() {
-        if (lists == null) {
-            lists = new ArrayList<>();
-            createMusicList();
-        } else {
-            if (lists.isEmpty()) {
-                createMusicList();
-            }
-        }
-    }
-
     public ArrayList<Music> getList() {
-        initMusicList();
-        return new ArrayList<>(lists);
+        return lists;
     }
 
     private void createMusicList() {
-        Cursor cursor = context.getContentResolver().query(
-                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, null, null, null, null);
+        Cursor cursor = mContext.getContentResolver().query(
+                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                null, null, null, null
+        );
         String name, path, artist;
         if (cursor != null) {
             while (cursor.moveToNext()) {
@@ -96,5 +89,5 @@ public class MusicList {
         return new ChinaInitial().getPyHeadStr(str, true);
     }
 
-    private static ArrayList<Music> lists;
+
 }
