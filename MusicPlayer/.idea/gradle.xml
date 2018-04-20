@@ -8,8 +8,8 @@
         <option name="gradleHome" value="D:\app\Android Studio\gradle\gradle-2.14.1" />
         <option name="modules">
           <set>
-            <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/app" />
+            <option value="$PROJECT_DIR$/../../../../../../muliangxing/disk4G/abc_temp/code/asproject/Android/MusicPlayer" />
+            <option value="$PROJECT_DIR$/../../../../../../muliangxing/disk4G/abc_temp/code/asproject/Android/MusicPlayer/app" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />
