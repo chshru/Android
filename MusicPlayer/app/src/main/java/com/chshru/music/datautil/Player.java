@@ -1,12 +1,11 @@
 package com.chshru.music.datautil;
 
-import android.app.Activity;
 import android.media.MediaPlayer;
 
-import com.chshru.music.AppContext;
 import com.chshru.music.service.Controller;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Created by chshru on 2017/5/16.
@@ -16,29 +15,43 @@ public class Player implements MediaPlayer.OnPreparedListener {
 
     private Controller mPlayer;
     private MusicList mList;
-    private ArrayList<MusicListener> listener;
-    private Activity mActivity;
+    private List<MusicListener> listener;
+    private int index;
 
     public Player(Controller service, MusicList list) {
         mPlayer = service;
         mPlayer.setPreparedListener(this);
+        listener = new LinkedList<>();
         mList = list;
-        listener = new ArrayList<>();
-
     }
 
-    public void setActivity(Activity activity) {
-        mActivity = activity;
+    public void setController(Controller controller) {
+        mPlayer = controller;
     }
+
 
     public int getPosition() {
-        return ((AppContext) mActivity.getApplication()).getPos();
+        return index;
+    }
+
+    public String getCurName() {
+        return mList.getList().get(index).getName();
+    }
+
+    public String getCurArtist() {
+        return mList.getList().get(index).getArtist();
     }
 
     public void addMusicListener(MusicListener listener) {
         this.listener.add(listener);
     }
 
+    public void removeMusicListener(MusicListener listener) {
+        if (this.listener.contains(listener)) {
+            this.listener.remove(listener);
+        }
+
+    }
 
     public int getDuration() {
         return mPlayer.getDuration();
@@ -57,7 +70,7 @@ public class Player implements MediaPlayer.OnPreparedListener {
     }
 
     public void choose(int p) {
-        ((AppContext) mActivity.getApplication()).setPos(p);
+        index = p;
         mPlayer.pause();
         String path = mList.getList().get(p).getPath();
         prepare(path);
@@ -91,30 +104,28 @@ public class Player implements MediaPlayer.OnPreparedListener {
 
 
     public void next() {
-        notifyChange();
+        index = (index + 1) % mList.getList().size();
+        choose(index);
     }
 
     public void pre() {
-        notifyChange();
+        index = (index - 1) % mList.getList().size();
+        choose(index);
     }
 
 
     private void notifyChange() {
         for (MusicListener ml : listener) {
             if (ml != null) {
-                ml.onPlayerPositionChange();
                 ml.onPlayerStatusChange();
             }
         }
     }
 
 
-
     public interface MusicListener {
 
         void onPlayerStatusChange();
-
-        void onPlayerPositionChange();
     }
 
 }

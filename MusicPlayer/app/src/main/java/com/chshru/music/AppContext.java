@@ -12,7 +12,16 @@ import com.chshru.music.datautil.Player;
 public class AppContext extends Application {
 
     private MusicList mList;
+    private Player mPlayer;
     private int pos;
+
+    public Player getPlayer() {
+        return mPlayer;
+    }
+
+    public void setPlayer(Player player) {
+        mPlayer = player;
+    }
 
     public MusicList getList() {
         return mList;

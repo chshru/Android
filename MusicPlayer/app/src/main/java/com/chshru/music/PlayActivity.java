@@ -21,13 +21,14 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 
-import com.chshru.music.AppContext;
-import com.chshru.music.R;
 import com.chshru.music.datautil.Player;
 import com.chshru.music.datautil.MusicList;
 import com.chshru.music.service.AudioView;
 import com.chshru.music.service.Controller;
 import com.chshru.music.service.PlayService;
+
+import java.util.Timer;
+import java.util.TimerTask;
 
 import static com.chshru.music.datautil.Config.*;
 
@@ -36,27 +37,25 @@ import static com.chshru.music.datautil.Config.*;
  */
 
 
-public class PlayActivity extends Activity implements View.OnClickListener {
+public class PlayActivity extends Activity implements View.OnClickListener, Player.MusicListener {
 
 
     private SeekBar seekBar;
-    private TextView curDuration;
-    private TextView duration;
+    private TextView curTime;
+    private TextView time;
     private TextView name;
     private TextView artist;
     private ImageView pauseImg;
     private ImageView preImg;
     private ImageView nextImg;
-    private Thread thread;
-    private int freshTime = TIME_LONG;
     private Visualizer visualizer;
     private Equalizer equalizer;
-    private Handler handler;
+
 
     private Player mPlayer;
     private Controller mController;
-    private Intent intent;
-    private MusicList mList;
+    private AppContext app;
+    private TimerTask task;
 
 
     @Override
@@ -64,18 +63,17 @@ public class PlayActivity extends Activity implements View.OnClickListener {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_play);
-        mList = ((AppContext) getApplication()).getList();
-        initViewAndResource();
-        try {
-            initAudioFxUi();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        initializeView();
+        initializeListener();
+
+    }
+
+    private void initializeListener() {
         nextImg.setOnClickListener(this);
         preImg.setOnClickListener(this);
         pauseImg.setOnClickListener(this);
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            private boolean preIsMusicPlay;
+            private boolean flag;
 
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -86,49 +84,79 @@ public class PlayActivity extends Activity implements View.OnClickListener {
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
-                preIsMusicPlay = musicPlaying;
-                freshTime = TIME_SHORT;
-                if (preIsMusicPlay) {
+                flag = mPlayer.isPlaying();
+                if (flag) {
                     mPlayer.pause();
                 }
             }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                freshTime = TIME_LONG;
-                if (preIsMusicPlay) {
+                if (flag) {
                     mPlayer.start();
                 }
             }
         });
+
+        task = new TimerTask() {
+            @Override
+            public void run() {
+                mHandler.sendEmptyMessage(MSG_FRESH);
+            }
+        };
     }
 
+    private final int MSG_FRESH = 0;
+
+    private Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case MSG_FRESH:
+                    time.setText(timeToString(mPlayer.getDuration()));
+                    curTime.setText(timeToString(mPlayer.getCurDuration()));
+                    seekBar.setMax(mPlayer.getDuration());
+                    seekBar.setProgress(mPlayer.getCurDuration());
+                    break;
+            }
+        }
+    };
 
     private ServiceConnection conn = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder binder) {
             mController = (Controller) binder;
-            mPlayer = new Player(mController, mList);
+            if (app.getPlayer() != null) {
+                mPlayer = app.getPlayer();
+                mPlayer.setController(mController);
+                mPlayer.addMusicListener(PlayActivity.this);
+            } else {
+                MusicList mList = MusicList.getInstance(getApplicationContext());
+                mPlayer = new Player(mController, mList);
+                mPlayer.addMusicListener(PlayActivity.this);
+            }
+            Timer timer = new Timer(true);
+            timer.schedule(task, 0, 100);
+            onPlayerStatusChange();
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
+            mPlayer.removeMusicListener(PlayActivity.this);
+            if (task != null) {
+                task.cancel();
+                task = null;
+            }
             mController = null;
         }
     };
 
-
-//    private void initializeService() {
-//        Intent intent = new Intent(this, PlayService.class);
-//        bindService(intent, conn, Context.BIND_AUTO_CREATE);
-//    }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.playing_next:
                 mPlayer.next();
-                threadSleep(TIME_SHORT);
                 break;
             case R.id.playing_pause:
                 if (mPlayer.isPlaying()) {
@@ -136,32 +164,15 @@ public class PlayActivity extends Activity implements View.OnClickListener {
                 } else {
                     mPlayer.start();
                 }
-                threadSleep(TIME_SHORT);
                 break;
             case R.id.playing_pre:
                 mPlayer.pre();
-                threadSleep(TIME_SHORT);
                 break;
         }
     }
 
-    private void threadSleep(int t) {
-        try {
-            thread.sleep(t);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
 
-
-    private void initViewAndResource() {
-        handler = new Handler() {
-            @Override
-            public void handleMessage(Message msg) {
-                if (msg.what == FRESH)
-                    freshSeekBar();
-            }
-        };
+    private void initializeView() {
         nextImg = (ImageView) findViewById(R.id.playing_next);
         nextImg.setImageResource(R.drawable.playing_next);
         pauseImg = (ImageView) findViewById(R.id.playing_pause);
@@ -169,23 +180,14 @@ public class PlayActivity extends Activity implements View.OnClickListener {
         preImg.setImageResource(R.drawable.playing_pre);
         name = (TextView) findViewById(R.id.playing_name);
         artist = (TextView) findViewById(R.id.playing_artist);
-        curDuration = (TextView) findViewById(R.id.playing_current);
-        duration = (TextView) findViewById(R.id.playing_sum);
+        curTime = (TextView) findViewById(R.id.playing_current);
+        time = (TextView) findViewById(R.id.playing_sum);
         seekBar = (SeekBar) findViewById(R.id.playing_seek_bar);
-        freshTextView();
-        startThread();
-    }
-
-    private void startThread() {
-//        if (thread != null) {
-//            if (thread.isInterrupted()) {
-//                thread.start();
-//            }
-//        } else {
-//            thread = new Thread(new SeekBarThread());
-//            thread.start();
-//        }
-
+        try {
+            initAudioFxUi();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void freeResource() {
@@ -198,25 +200,8 @@ public class PlayActivity extends Activity implements View.OnClickListener {
             equalizer.release();
             equalizer = null;
         }
-        if (thread != null && thread.isAlive()) {
-            thread.interrupt();
-            thread = null;
-        }
     }
 
-    public void freshTextView() {
-//        name.setText(MusicList.getInstance(this).getList().get(curPosition).getName());
-//        seekBar.setMax(mPlayer.getDuration());
-//        artist.setText(MusicList.getInstance(this).getList().get(curPosition).getArtist());
-//        if (musicPlaying) pauseImg.setImageResource(R.drawable.playing_run);
-//        else pauseImg.setImageResource(R.drawable.playing_pause);
-    }
-
-    private void freshSeekBar() {
-//        seekBar.setProgress(mPlayer.getCurDuration());
-//        duration.setText(timeToString(mPlayer.getDuration()));
-//        curDuration.setText(timeToString(mPlayer.getCurDuration()));
-    }
 
     private String timeToString(int t) {
         String sMin, sSec;
@@ -225,20 +210,6 @@ public class PlayActivity extends Activity implements View.OnClickListener {
         sMin = sMin.length() < 2 ? "0" + sMin : sMin;
         sSec = sSec.length() < 2 ? "0" + sSec : sSec;
         return sMin + ":" + sSec;
-    }
-
-    private class SeekBarThread implements Runnable {
-        @Override
-        public void run() {
-            while (true) {
-                try {
-                    handler.sendEmptyMessage(FRESH);
-                    Thread.sleep(freshTime);
-                } catch (InterruptedException e) {
-                    startThread();
-                }
-            }
-        }
     }
 
     private void initAudioFxUi() {
@@ -267,20 +238,28 @@ public class PlayActivity extends Activity implements View.OnClickListener {
     @Override
     protected void onResume() {
         super.onResume();
-        intent = new Intent(this, PlayService.class);
+        app = (AppContext) getApplication();
+        Intent intent = new Intent(this, PlayService.class);
         startService(intent);
         bindService(intent, conn, Context.BIND_AUTO_CREATE);
 
     }
 
+
     @Override
-    protected void onStop() {
-        super.onStop();
-        boolean isPlay = mPlayer.isPlaying();
+    protected void onPause() {
+        super.onPause();
         unbindService(conn);
-        if (!isPlay) {
-            stopService(intent);
-        }
+    }
+
+    @Override
+    public void onPlayerStatusChange() {
+        int res = mPlayer.isPlaying() ?
+                R.drawable.playing_run :
+                R.drawable.playing_pause;
+        pauseImg.setImageResource(res);
+        name.setText(mPlayer.getCurName());
+        artist.setText(mPlayer.getCurArtist());
     }
 }
 

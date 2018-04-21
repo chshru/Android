@@ -26,6 +26,10 @@ public class PlayService extends Service {
         return new PlayBinder();
     }
 
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        return super.onStartCommand(intent, flags, startId);
+    }
 
     private int getAudioSessionIdInService() {
         try {
