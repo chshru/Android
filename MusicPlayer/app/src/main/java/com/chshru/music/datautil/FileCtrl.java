@@ -43,7 +43,7 @@ public class FileCtrl {
         try {
             FileOutputStream fOut = context.openFileOutput(Config.FILE_PLAYINFO, MODE_PRIVATE);
             fOut.write((Config.POSITION + division + Config.curPosition + "\r\n").getBytes());
-            fOut.write((Config.PROCESS + division + CtrlPlayer.getInstance(context).getCurTime() + "\r\n").getBytes());
+            //fOut.write((Config.PROCESS + division + Player.getInstance(context).getCurTime() + "\r\n").getBytes());
             fOut.close();
 
         } catch (Exception e) {

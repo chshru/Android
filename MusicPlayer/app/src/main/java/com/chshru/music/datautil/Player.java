@@ -1,6 +1,8 @@
 package com.chshru.music.datautil;
 
-import com.chshru.music.service.PlayService;
+import com.chshru.music.service.Controller;
+
+import java.util.ArrayList;
 
 /**
  * Created by chshru on 2017/5/16.
@@ -8,13 +10,20 @@ import com.chshru.music.service.PlayService;
 
 public class Player {
 
-    private PlayService mPlayer;
+    private Controller mPlayer;
     private MusicList mList;
+    private ArrayList<MusicListener> listener;
 
-    public Player(PlayService service, MusicList list) {
+    public Player(Controller service, MusicList list) {
         mPlayer = service;
         mList = list;
+        listener = new ArrayList<>();
     }
+
+    public void addMusicListener(MusicListener listener) {
+        this.listener.add(listener);
+    }
+
 
     public int getDuration() {
         return mPlayer.getDuration();
@@ -37,20 +46,21 @@ public class Player {
         String path = mList.getList().get(p).getPath();
         prepare(path);
         start();
+        notifyChange(p);
+    }
+
+    public boolean isPlaying() {
+        return mPlayer.isPlaying();
     }
 
     public void pause() {
-        if (mPlayer.isPlaying()) {
-            mPlayer.pause();
-        }
-
+        mPlayer.pause();
+        notifyChange();
     }
 
     public void start() {
-        if (!mPlayer.isPlaying()) {
-            mPlayer.start();
-        }
-
+        mPlayer.start();
+        notifyChange();
     }
 
 
@@ -58,5 +68,36 @@ public class Player {
         mPlayer.prepare(path);
     }
 
+
+    public void next() {
+        notifyChange();
+    }
+
+    public void pre() {
+        notifyChange();
+    }
+
+    private void notifyChange() {
+        for (MusicListener ml : listener) {
+            if (ml != null) {
+                ml.onPlayerStatusChange();
+            }
+        }
+    }
+
+    private void notifyChange(int pos) {
+        for (MusicListener ml : listener) {
+            if (ml != null) {
+                ml.onPlayerPositionChange(pos);
+            }
+        }
+    }
+
+    public interface MusicListener {
+
+        void onPlayerStatusChange();
+
+        void onPlayerPositionChange(int pos);
+    }
 
 }

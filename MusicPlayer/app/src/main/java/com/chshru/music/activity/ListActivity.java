@@ -8,36 +8,34 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.chshru.music.R;
-import com.chshru.music.datautil.Config;
-import com.chshru.music.datautil.Player;
-import com.chshru.music.datautil.MusicList;
-import com.chshru.music.service.DialogFactory;
-import com.chshru.music.service.ListAdapter;
-import com.chshru.music.service.PlayService;
-import com.chshru.music.service.VirtualKey;
+import com.chshru.music.*;
+import com.chshru.music.datautil.*;
+import com.chshru.music.service.*;
 
 
 /**
  * Created by chshru on 2017/2/25.
  */
 
-public class ListActivity extends Activity implements View.OnClickListener {
+public class ListActivity extends Activity implements View.OnClickListener, Player.MusicListener {
 
 
     private ListView list;
     private TextView name;
     private ImageView pause;
-    private PlayService mService;
+    private Controller mService;
     private MusicList mList;
     private ListAdapter mAdapter;
+    private Player mPlayer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,14 +53,17 @@ public class ListActivity extends Activity implements View.OnClickListener {
         mList = MusicList.getInstance(this);
         mAdapter = new ListAdapter(mList.getList(), this);
         list.setAdapter(mAdapter);
-        initializeService();
+        initClickListener();
     }
 
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.pauseicon:
-                if (Config.musicPlaying) Player.getInstance(this).pause();
-                else Player.getInstance(this).start();
+                if (mPlayer.isPlaying()) {
+                    mPlayer.pause();
+                } else {
+                    mPlayer.start();
+                }
                 break;
             case R.id.runname:
                 Intent playing = new Intent(this, PlayActivity.class);
@@ -71,13 +72,13 @@ public class ListActivity extends Activity implements View.OnClickListener {
         }
     }
 
-    private void setOnClickListener() {
+    private void initClickListener() {
         name.setOnClickListener(this);
         pause.setOnClickListener(this);
         list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Player.getInstance(ListActivity.this).choose(position);
+                mPlayer.choose(position);
             }
         });
         list.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
@@ -96,7 +97,9 @@ public class ListActivity extends Activity implements View.OnClickListener {
     private ServiceConnection conn = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder binder) {
-            mService = ((PlayService.PlayBinder) binder).getService();
+            mService = (Controller) binder;
+            mPlayer = new Player(mService, mList);
+            mPlayer.addMusicListener(ListActivity.this);
         }
 
         @Override
@@ -105,15 +108,58 @@ public class ListActivity extends Activity implements View.OnClickListener {
         }
     };
 
+    private final int STATUS_CHANGE = 0;
+    private final int POS_CHANGE = 1;
 
-    private void initializeService() {
-        Intent intent = new Intent(this, PlayService.class);
-        bindService(intent, conn, Context.BIND_AUTO_CREATE);
-    }
+    private Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case STATUS_CHANGE:
+                    int res = mPlayer.isPlaying() ?
+                            R.drawable.main_run :
+                            R.drawable.main_pause;
+                    pause.setImageResource(res);
+                    break;
+                case POS_CHANGE:
+                    String temp = mList.getList().get(msg.arg1).getName();
+                    name.setText(temp);
+                    break;
+            }
+        }
+    };
+
 
     @Override
     protected void onPause() {
         super.onPause();
+        boolean isPlay = mPlayer.isPlaying();
         unbindService(conn);
+        if (!isPlay) {
+            stopService(intent);
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        intent = new Intent(this, PlayService.class);
+        startService(intent);
+        bindService(intent, conn, Context.BIND_AUTO_CREATE);
+    }
+
+    private Intent intent;
+
+    @Override
+    public void onPlayerStatusChange() {
+        mHandler.sendEmptyMessage(STATUS_CHANGE);
+    }
+
+    @Override
+    public void onPlayerPositionChange(int pos) {
+        Message msg = mHandler.obtainMessage();
+        msg.what = POS_CHANGE;
+        msg.arg1 = pos;
+        mHandler.sendMessage(msg);
     }
 }

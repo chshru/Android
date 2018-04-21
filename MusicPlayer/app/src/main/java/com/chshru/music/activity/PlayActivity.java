@@ -1,12 +1,16 @@
 package com.chshru.music.activity;
 
 import android.app.*;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.media.AudioManager;
 import android.media.audiofx.Equalizer;
 import android.media.audiofx.Visualizer;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Message;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,9 +22,11 @@ import android.widget.TextView;
 
 
 import com.chshru.music.R;
-import com.chshru.music.datautil.CtrlPlayer;
+import com.chshru.music.datautil.Player;
 import com.chshru.music.datautil.MusicList;
 import com.chshru.music.service.AudioView;
+import com.chshru.music.service.Controller;
+import com.chshru.music.service.PlayService;
 
 import static com.chshru.music.datautil.Config.*;
 
@@ -33,8 +39,8 @@ public class PlayActivity extends Activity implements View.OnClickListener {
 
 
     private SeekBar seekBar;
-    private TextView curTime;
-    private TextView maxTime;
+    private TextView curDuration;
+    private TextView duration;
     private TextView name;
     private TextView artist;
     private ImageView pauseImg;
@@ -46,19 +52,18 @@ public class PlayActivity extends Activity implements View.OnClickListener {
     private Equalizer equalizer;
     private Handler handler;
 
-    private static PlayActivity PlatAty;
+    private Player mPlayer;
+    private Controller mController;
 
-    public static PlayActivity getPlatAty() {
-        return PlatAty;
-    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_play);
-        PlatAty = this;
         initViewAndResource();
+        initializeService();
+        mPlayer = new Player(mController, MusicList.getInstance(this));
         try {
             initAudioFxUi();
         } catch (Exception e) {
@@ -73,7 +78,7 @@ public class PlayActivity extends Activity implements View.OnClickListener {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 if (fromUser) {
-                    CtrlPlayer.getInstance(PlatAty).quickRun(progress);
+                    mPlayer.seekTo(progress);
                 }
             }
 
@@ -82,7 +87,7 @@ public class PlayActivity extends Activity implements View.OnClickListener {
                 preIsMusicPlay = musicPlaying;
                 freshTime = TIME_SHORT;
                 if (preIsMusicPlay) {
-                    CtrlPlayer.getInstance(PlatAty).pause();
+                    mPlayer.pause();
                 }
             }
 
@@ -90,26 +95,48 @@ public class PlayActivity extends Activity implements View.OnClickListener {
             public void onStopTrackingTouch(SeekBar seekBar) {
                 freshTime = TIME_LONG;
                 if (preIsMusicPlay) {
-                    CtrlPlayer.getInstance(PlatAty).start();
+                    mPlayer.start();
                 }
             }
         });
+    }
+
+
+    private ServiceConnection conn = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder binder) {
+            mController = (Controller) binder;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            mController = null;
+        }
+    };
+
+
+    private void initializeService() {
+        Intent intent = new Intent(this, PlayService.class);
+        bindService(intent, conn, Context.BIND_AUTO_CREATE);
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.playing_next:
-                CtrlPlayer.getInstance(this).next();
+                mPlayer.next();
                 threadSleep(TIME_SHORT);
                 break;
             case R.id.playing_pause:
-                if (musicPlaying) CtrlPlayer.getInstance(this).pause();
-                else CtrlPlayer.getInstance(this).start();
+                if (mPlayer.isPlaying()) {
+                    mPlayer.pause();
+                } else {
+                    mPlayer.start();
+                }
                 threadSleep(TIME_SHORT);
                 break;
             case R.id.playing_pre:
-                CtrlPlayer.getInstance(this).pre();
+                mPlayer.pre();
                 threadSleep(TIME_SHORT);
                 break;
         }
@@ -139,8 +166,8 @@ public class PlayActivity extends Activity implements View.OnClickListener {
         preImg.setImageResource(R.drawable.playing_pre);
         name = (TextView) findViewById(R.id.playing_name);
         artist = (TextView) findViewById(R.id.playing_artist);
-        curTime = (TextView) findViewById(R.id.playing_current);
-        maxTime = (TextView) findViewById(R.id.playing_sum);
+        curDuration = (TextView) findViewById(R.id.playing_current);
+        duration = (TextView) findViewById(R.id.playing_sum);
         seekBar = (SeekBar) findViewById(R.id.playing_seek_bar);
         freshTextView();
         startThread();
@@ -176,16 +203,16 @@ public class PlayActivity extends Activity implements View.OnClickListener {
 
     public void freshTextView() {
         name.setText(MusicList.getInstance(this).getList().get(curPosition).getName());
-        seekBar.setMax(CtrlPlayer.getInstance(this).getMaxTime());
+        seekBar.setMax(mPlayer.getDuration());
         artist.setText(MusicList.getInstance(this).getList().get(curPosition).getArtist());
         if (musicPlaying) pauseImg.setImageResource(R.drawable.playing_run);
         else pauseImg.setImageResource(R.drawable.playing_pause);
     }
 
     private void freshSeekBar() {
-        seekBar.setProgress(CtrlPlayer.getInstance(this).getCurTime());
-        maxTime.setText(calcTime(CtrlPlayer.getInstance(this).getMaxTime()));
-        curTime.setText(calcTime(CtrlPlayer.getInstance(this).getCurTime()));
+        seekBar.setProgress(mPlayer.getCurDuration());
+        duration.setText(calcTime(mPlayer.getDuration()));
+        curDuration.setText(calcTime(mPlayer.getCurDuration()));
     }
 
     private String calcTime(int t) {
@@ -220,10 +247,10 @@ public class PlayActivity extends Activity implements View.OnClickListener {
         mAudio.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 (int) (VISUALIZER_HEIGHT_DIP * getResources().getDisplayMetrics().density)));
         mLayout.addView(mAudio);
-        visualizer = new Visualizer(CtrlPlayer.getInstance(this).getSessionId());
+        visualizer = new Visualizer(mPlayer.getSessionId());
         visualizer.setCaptureSize(Visualizer.getCaptureSizeRange()[1]);
         mAudio.setVisualizer(visualizer);
-        equalizer = new Equalizer(0, CtrlPlayer.getInstance(this).getSessionId());
+        equalizer = new Equalizer(0, mPlayer.getSessionId());
         equalizer.setEnabled(true);
         visualizer.setEnabled(true);
     }

@@ -7,12 +7,6 @@ import android.os.Binder;
 import android.os.IBinder;
 
 
-import com.chshru.music.activity.ListActivity;
-import com.chshru.music.activity.PlayActivity;
-import com.chshru.music.datautil.CtrlPlayer;
-import com.chshru.music.datautil.FileCtrl;
-
-
 /**
  * Created by chshru on 2017/2/25.
  */
@@ -23,16 +17,15 @@ public class PlayService extends Service {
 
     private MediaPlayer mPlayer;
 
-    private IBinder binder = new PlayBinder();
-
 
     @Override
     public IBinder onBind(Intent intent) {
-        return binder;
+        mPlayer = new MediaPlayer();
+        return new PlayBinder();
     }
 
 
-    public int getAudioSessionId() {
+    public int getAudioSessionIdInService() {
         try {
             return mPlayer.getAudioSessionId();
         } catch (Exception e) {
@@ -40,21 +33,25 @@ public class PlayService extends Service {
         }
     }
 
-    public void seekTo(int t) {
+    public void seekToInService(int t) {
         mPlayer.seekTo(t);
     }
 
-    public int getDuration() {
+    public boolean isPlayingInService() {
+        return mPlayer.isPlaying();
+    }
+
+    public int getDurationInService() {
         return mPlayer.getDuration();
     }
 
-    public int getCurDuration() {
+    public int getCurDurationInService() {
         return mPlayer.getCurrentPosition();
     }
 
-    public void prepare(String path) {
+    public void prepareInService(String path) {
         try {
-            mPlayer.reset();
+            mPlayer.stop();
             mPlayer.setDataSource(path);
             mPlayer.prepare();
         } catch (Exception e) {
@@ -63,11 +60,11 @@ public class PlayService extends Service {
     }
 
 
-    public void start() {
+    public void startInService() {
         mPlayer.start();
     }
 
-    public void pause() {
+    public void pauseInService() {
         mPlayer.pause();
     }
 
@@ -86,9 +83,48 @@ public class PlayService extends Service {
         freePlayer();
     }
 
-    class PlayBinder extends Binder {
-        public PlayService getService() {
-            return PlayService.this;
+
+    public class PlayBinder extends Binder implements Controller {
+
+
+        @Override
+        public int getAudioSessionId() {
+            return getAudioSessionIdInService();
+        }
+
+        @Override
+        public void seekTo(int t) {
+            seekToInService(t);
+        }
+
+        @Override
+        public boolean isPlaying() {
+            return isPlayingInService();
+        }
+
+        @Override
+        public int getDuration() {
+            return getDurationInService();
+        }
+
+        @Override
+        public int getCurDuration() {
+            return getCurDurationInService();
+        }
+
+        @Override
+        public void prepare(String path) {
+            prepareInService(path);
+        }
+
+        @Override
+        public void start() {
+            startInService();
+        }
+
+        @Override
+        public void pause() {
+            pauseInService();
         }
     }
 

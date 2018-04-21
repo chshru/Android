@@ -4,23 +4,20 @@ package com.chshru.music.datautil;
  * Created by chshru on 2017/4/26.
  */
 
-public class ChinaInitial {
+class ChinaInitial {
 
-    /**
-     * 返回中文拼音首字母缩写
-     */
-    public String getPyHeadStr(String strChinese, boolean bUpCase) {
+    String getPyHeadStr(String strChinese, boolean up) {
 
         try {
 
-            StringBuffer buffer = new StringBuffer();
+            StringBuilder buffer = new StringBuilder();
             byte b[] = strChinese.getBytes("GBK");
             for (int i = 0; i < b.length; i++) {
                 if ((b[i] & 255) > 128) {
                     int char1 = b[i++] & 255;
                     char1 <<= 8;
                     int chart = char1 + (b[i] & 255);
-                    buffer.append(getIndexChar((char) chart, bUpCase));
+                    buffer.append(getChar((char) chart, up));
                     continue;
                 }
                 char c = (char) b[i];
@@ -35,13 +32,10 @@ public class ChinaInitial {
         return null;
     }
 
-    /**
-     * 得到首字母
-     */
 
-    private char getIndexChar(char strChinese, boolean bUpCase) {
+    private char getChar(char str, boolean up) {
 
-        int charGBK = (int) strChinese;
+        int charGBK = (int) str;
         char result;
         if (charGBK >= 45217 && charGBK <= 45252)
             result = 'A';
@@ -91,7 +85,7 @@ public class ChinaInitial {
             result = 'Z';
         else
             result = 'z';
-        if (!bUpCase)
+        if (!up)
             result = Character.toLowerCase(result);
         return result;
     }

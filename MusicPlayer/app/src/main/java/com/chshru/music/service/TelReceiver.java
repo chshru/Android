@@ -8,15 +8,15 @@ import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 
 import com.chshru.music.datautil.Config;
-import com.chshru.music.datautil.CtrlPlayer;
+import com.chshru.music.datautil.Player;
 
 /**
  * Created by chshru on 2017/4/17.
  */
 
 public class TelReceiver extends BroadcastReceiver {
-    private boolean preMusicPlaying;
 
+    private boolean preMusicPlaying;
     private Context context;
 
     @Override
@@ -24,7 +24,7 @@ public class TelReceiver extends BroadcastReceiver {
         this.context = context;
         preMusicPlaying = Config.musicPlaying;
         if (preMusicPlaying) {
-            CtrlPlayer.getInstance(context).pause();
+            //Player.getInstance(context).pauseInService();
         }
         TelephonyManager tm = (TelephonyManager) context.getSystemService(Service.TELEPHONY_SERVICE);
         tm.listen(listener, PhoneStateListener.LISTEN_CALL_STATE);
@@ -36,7 +36,7 @@ public class TelReceiver extends BroadcastReceiver {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    CtrlPlayer.getInstance(context).start();
+                    //Player.getInstance(context).startInService();
                 }
             }
         }
@@ -51,7 +51,7 @@ public class TelReceiver extends BroadcastReceiver {
                 case TelephonyManager.CALL_STATE_IDLE:
                     if (preMusicPlaying)
                         if (!Config.musicPlaying)
-                            CtrlPlayer.getInstance(context).start();
+                            //Player.getInstance(context).startInService();
                     break;
 
             }
