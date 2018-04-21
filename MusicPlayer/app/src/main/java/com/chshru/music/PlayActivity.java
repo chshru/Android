@@ -56,6 +56,7 @@ public class PlayActivity extends Activity implements View.OnClickListener, Play
     private Controller mController;
     private AppContext app;
     private TimerTask task;
+    private int fresh = 100;
 
 
     @Override
@@ -85,6 +86,7 @@ public class PlayActivity extends Activity implements View.OnClickListener, Play
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
                 flag = mPlayer.isPlaying();
+                fresh = 20;
                 if (flag) {
                     mPlayer.pause();
                 }
@@ -92,6 +94,7 @@ public class PlayActivity extends Activity implements View.OnClickListener, Play
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
+                fresh = 100;
                 if (flag) {
                     mPlayer.start();
                 }
@@ -113,14 +116,23 @@ public class PlayActivity extends Activity implements View.OnClickListener, Play
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case MSG_FRESH:
-                    time.setText(timeToString(mPlayer.getDuration()));
-                    curTime.setText(timeToString(mPlayer.getCurDuration()));
-                    seekBar.setMax(mPlayer.getDuration());
-                    seekBar.setProgress(mPlayer.getCurDuration());
+                    int temp = freshNow();
+                    sendEmptyMessageDelayed(MSG_FRESH, temp);
                     break;
             }
         }
     };
+
+    private int freshNow() {
+        time.setText(timeToString(mPlayer.getDuration()));
+        curTime.setText(timeToString(mPlayer.getCurDuration()));
+        seekBar.setMax(mPlayer.getDuration());
+        seekBar.setProgress(mPlayer.getCurDuration());
+        if (!mPlayer.isPlaying()) {
+            return 500;
+        }
+        return fresh;
+    }
 
     private ServiceConnection conn = new ServiceConnection() {
         @Override
@@ -135,8 +147,8 @@ public class PlayActivity extends Activity implements View.OnClickListener, Play
                 mPlayer = new Player(mController, mList);
                 mPlayer.addMusicListener(PlayActivity.this);
             }
-            Timer timer = new Timer(true);
-            timer.schedule(task, 0, 100);
+            int temp = freshNow();
+            mHandler.sendEmptyMessageDelayed(MSG_FRESH, temp);
             onPlayerStatusChange();
         }
 
@@ -250,6 +262,7 @@ public class PlayActivity extends Activity implements View.OnClickListener, Play
     protected void onPause() {
         super.onPause();
         unbindService(conn);
+        mHandler.removeMessages(MSG_FRESH);
     }
 
     @Override
