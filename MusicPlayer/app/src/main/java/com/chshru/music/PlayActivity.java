@@ -114,7 +114,9 @@ public class PlayActivity extends Activity implements View.OnClickListener, Play
     private int freshNow() {
         time.setText(timeToString(mPlayer.getDuration()));
         curTime.setText(timeToString(mPlayer.getCurDuration()));
-        seekBar.setMax(mPlayer.getDuration());
+        int dur = mPlayer.getDuration();
+        dur = dur > 100000000 ? 0 : dur;
+        seekBar.setMax(dur);
         seekBar.setProgress(mPlayer.getCurDuration());
         return fresh;
     }
