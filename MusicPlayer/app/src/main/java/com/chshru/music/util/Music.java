@@ -1,4 +1,4 @@
-package com.chshru.music.datautil;
+package com.chshru.music.util;
 
 /**
  * Created by chshru on 2017/2/17.

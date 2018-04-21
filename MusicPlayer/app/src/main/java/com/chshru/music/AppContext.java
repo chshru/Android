@@ -2,8 +2,8 @@ package com.chshru.music;
 
 import android.app.Application;
 
-import com.chshru.music.datautil.MusicList;
-import com.chshru.music.datautil.Player;
+import com.chshru.music.util.MusicList;
+import com.chshru.music.util.Player;
 
 /**
  * Created by abc on 18-4-21.

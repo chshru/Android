@@ -15,8 +15,8 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.chshru.music.datautil.*;
-import com.chshru.music.service.*;
+import com.chshru.music.util.*;
+import com.chshru.music.view.*;
 
 
 /**

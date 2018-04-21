@@ -21,16 +21,12 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 
-import com.chshru.music.datautil.Player;
-import com.chshru.music.datautil.MusicList;
-import com.chshru.music.service.AudioView;
-import com.chshru.music.service.Controller;
-import com.chshru.music.service.PlayService;
+import com.chshru.music.util.Player;
+import com.chshru.music.util.MusicList;
+import com.chshru.music.view.AudioView;
+import com.chshru.music.view.Controller;
+import com.chshru.music.view.PlayService;
 
-import java.util.Timer;
-import java.util.TimerTask;
-
-import static com.chshru.music.datautil.Config.*;
 
 /**
  * Created by chshru on 2017/2/25.
@@ -55,7 +51,6 @@ public class PlayActivity extends Activity implements View.OnClickListener, Play
     private Player mPlayer;
     private Controller mController;
     private AppContext app;
-    private TimerTask task;
     private int fresh = 100;
 
 
@@ -100,13 +95,6 @@ public class PlayActivity extends Activity implements View.OnClickListener, Play
                 }
             }
         });
-
-        task = new TimerTask() {
-            @Override
-            public void run() {
-                mHandler.sendEmptyMessage(MSG_FRESH);
-            }
-        };
     }
 
     private final int MSG_FRESH = 0;
@@ -155,10 +143,6 @@ public class PlayActivity extends Activity implements View.OnClickListener, Play
         @Override
         public void onServiceDisconnected(ComponentName name) {
             mPlayer.removeMusicListener(PlayActivity.this);
-            if (task != null) {
-                task.cancel();
-                task = null;
-            }
             mController = null;
         }
     };

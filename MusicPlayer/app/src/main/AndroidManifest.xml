@@ -29,17 +29,9 @@
             android:exported="true" />
 
         <service
-            android:name="com.chshru.music.service.PlayService"
+            android:name="com.chshru.music.view.PlayService"
             android:enabled="true"
             android:exported="true"/>
 
-        <receiver
-            android:name="com.chshru.music.service.TelReceiver"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.PHONE_STATE" />
-                <action android:name="android.intent.action.NEW_OUTGOING_CALL" />
-            </intent-filter>
-        </receiver>
     </application>
 </manifest>

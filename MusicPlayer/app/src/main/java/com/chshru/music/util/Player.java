@@ -1,8 +1,8 @@
-package com.chshru.music.datautil;
+package com.chshru.music.util;
 
 import android.media.MediaPlayer;
 
-import com.chshru.music.service.Controller;
+import com.chshru.music.view.Controller;
 
 import java.util.LinkedList;
 import java.util.List;

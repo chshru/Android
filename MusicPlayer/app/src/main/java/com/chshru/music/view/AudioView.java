@@ -1,4 +1,4 @@
-package com.chshru.music.service;
+package com.chshru.music.view;
 
 import android.content.Context;
 import android.graphics.Canvas;

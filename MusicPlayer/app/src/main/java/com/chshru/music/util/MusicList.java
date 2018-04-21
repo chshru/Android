@@ -1,4 +1,4 @@
-package com.chshru.music.datautil;
+package com.chshru.music.util;
 
 import android.content.Context;
 import android.database.Cursor;

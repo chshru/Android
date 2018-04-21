@@ -1,4 +1,4 @@
-package com.chshru.music.service;
+package com.chshru.music;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -8,7 +8,7 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 
-import com.chshru.music.datautil.Music;
+import com.chshru.music.util.Music;
 import com.chshru.music.R;
 
 import java.util.List;
