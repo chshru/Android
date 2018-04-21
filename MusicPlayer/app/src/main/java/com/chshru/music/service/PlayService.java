@@ -6,6 +6,8 @@ import android.media.MediaPlayer;
 import android.os.Binder;
 import android.os.IBinder;
 
+import com.chshru.music.datautil.Player;
+
 
 /**
  * Created by chshru on 2017/2/25.
@@ -25,7 +27,7 @@ public class PlayService extends Service {
     }
 
 
-    public int getAudioSessionIdInService() {
+    private int getAudioSessionIdInService() {
         try {
             return mPlayer.getAudioSessionId();
         } catch (Exception e) {
@@ -33,38 +35,43 @@ public class PlayService extends Service {
         }
     }
 
-    public void seekToInService(int t) {
+    private void seekToInService(int t) {
         mPlayer.seekTo(t);
     }
 
-    public boolean isPlayingInService() {
+    private boolean isPlayingInService() {
         return mPlayer.isPlaying();
     }
 
-    public int getDurationInService() {
+    private int getDurationInService() {
         return mPlayer.getDuration();
     }
 
-    public int getCurDurationInService() {
+    private int getCurDurationInService() {
         return mPlayer.getCurrentPosition();
     }
 
-    public void prepareInService(String path) {
+    private void prepareInService(String path) {
         try {
             mPlayer.stop();
+            mPlayer.reset();
             mPlayer.setDataSource(path);
-            mPlayer.prepare();
+            mPlayer.prepareAsync();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
+    private void setPreparedListenerInService(MediaPlayer.OnPreparedListener listener) {
+        mPlayer.setOnPreparedListener(listener);
+    }
 
-    public void startInService() {
+
+    private void startInService() {
         mPlayer.start();
     }
 
-    public void pauseInService() {
+    private void pauseInService() {
         mPlayer.pause();
     }
 
@@ -126,7 +133,11 @@ public class PlayService extends Service {
         public void pause() {
             pauseInService();
         }
-    }
 
+        @Override
+        public void setPreparedListener(MediaPlayer.OnPreparedListener listener) {
+            setPreparedListenerInService(listener);
+        }
+    }
 }
 

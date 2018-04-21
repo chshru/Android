@@ -1,4 +1,4 @@
-package com.chshru.music.activity;
+package com.chshru.music;
 
 import android.app.Activity;
 import android.content.ComponentName;
@@ -17,7 +17,6 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.chshru.music.*;
 import com.chshru.music.datautil.*;
 import com.chshru.music.service.*;
 
@@ -32,10 +31,11 @@ public class ListActivity extends Activity implements View.OnClickListener, Play
     private ListView list;
     private TextView name;
     private ImageView pause;
-    private Controller mService;
+    private Controller mController;
     private MusicList mList;
     private ListAdapter mAdapter;
     private Player mPlayer;
+    private Intent intent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,9 +50,10 @@ public class ListActivity extends Activity implements View.OnClickListener, Play
         pause = (ImageView) findViewById(R.id.pauseicon);
         list = (ListView) findViewById(R.id.musicList);
         VirtualKey.assistActivity(findViewById(R.id.musicList));
-        mList = MusicList.getInstance(this);
+        mList = MusicList.getInstance(getApplicationContext());
         mAdapter = new ListAdapter(mList.getList(), this);
         list.setAdapter(mAdapter);
+        ((AppContext) getApplication()).setList(mList);
         initClickListener();
     }
 
@@ -97,14 +98,18 @@ public class ListActivity extends Activity implements View.OnClickListener, Play
     private ServiceConnection conn = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder binder) {
-            mService = (Controller) binder;
-            mPlayer = new Player(mService, mList);
+            mController = (Controller) binder;
+            mPlayer = new Player(mController, mList);
             mPlayer.addMusicListener(ListActivity.this);
+            mPlayer.setActivity(ListActivity.this);
+            onPlayerStatusChange();
+            onPlayerPositionChange();
+
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-            mService = null;
+            mController = null;
         }
     };
 
@@ -148,7 +153,6 @@ public class ListActivity extends Activity implements View.OnClickListener, Play
         bindService(intent, conn, Context.BIND_AUTO_CREATE);
     }
 
-    private Intent intent;
 
     @Override
     public void onPlayerStatusChange() {
@@ -156,10 +160,10 @@ public class ListActivity extends Activity implements View.OnClickListener, Play
     }
 
     @Override
-    public void onPlayerPositionChange(int pos) {
+    public void onPlayerPositionChange() {
         Message msg = mHandler.obtainMessage();
         msg.what = POS_CHANGE;
-        msg.arg1 = pos;
+        msg.arg1 = mPlayer.getPosition();
         mHandler.sendMessage(msg);
     }
 }

@@ -1,4 +1,4 @@
-package com.chshru.music.activity;
+package com.chshru.music;
 
 import android.app.*;
 import android.content.ComponentName;
@@ -21,6 +21,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 
+import com.chshru.music.AppContext;
 import com.chshru.music.R;
 import com.chshru.music.datautil.Player;
 import com.chshru.music.datautil.MusicList;
@@ -54,6 +55,8 @@ public class PlayActivity extends Activity implements View.OnClickListener {
 
     private Player mPlayer;
     private Controller mController;
+    private Intent intent;
+    private MusicList mList;
 
 
     @Override
@@ -61,9 +64,8 @@ public class PlayActivity extends Activity implements View.OnClickListener {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_play);
+        mList = ((AppContext) getApplication()).getList();
         initViewAndResource();
-        initializeService();
-        mPlayer = new Player(mController, MusicList.getInstance(this));
         try {
             initAudioFxUi();
         } catch (Exception e) {
@@ -106,6 +108,7 @@ public class PlayActivity extends Activity implements View.OnClickListener {
         @Override
         public void onServiceConnected(ComponentName name, IBinder binder) {
             mController = (Controller) binder;
+            mPlayer = new Player(mController, mList);
         }
 
         @Override
@@ -115,10 +118,10 @@ public class PlayActivity extends Activity implements View.OnClickListener {
     };
 
 
-    private void initializeService() {
-        Intent intent = new Intent(this, PlayService.class);
-        bindService(intent, conn, Context.BIND_AUTO_CREATE);
-    }
+//    private void initializeService() {
+//        Intent intent = new Intent(this, PlayService.class);
+//        bindService(intent, conn, Context.BIND_AUTO_CREATE);
+//    }
 
     @Override
     public void onClick(View v) {
@@ -174,14 +177,14 @@ public class PlayActivity extends Activity implements View.OnClickListener {
     }
 
     private void startThread() {
-        if (thread != null) {
-            if (thread.isInterrupted()) {
-                thread.start();
-            }
-        } else {
-            thread = new Thread(new SeekBarThread());
-            thread.start();
-        }
+//        if (thread != null) {
+//            if (thread.isInterrupted()) {
+//                thread.start();
+//            }
+//        } else {
+//            thread = new Thread(new SeekBarThread());
+//            thread.start();
+//        }
 
     }
 
@@ -202,20 +205,20 @@ public class PlayActivity extends Activity implements View.OnClickListener {
     }
 
     public void freshTextView() {
-        name.setText(MusicList.getInstance(this).getList().get(curPosition).getName());
-        seekBar.setMax(mPlayer.getDuration());
-        artist.setText(MusicList.getInstance(this).getList().get(curPosition).getArtist());
-        if (musicPlaying) pauseImg.setImageResource(R.drawable.playing_run);
-        else pauseImg.setImageResource(R.drawable.playing_pause);
+//        name.setText(MusicList.getInstance(this).getList().get(curPosition).getName());
+//        seekBar.setMax(mPlayer.getDuration());
+//        artist.setText(MusicList.getInstance(this).getList().get(curPosition).getArtist());
+//        if (musicPlaying) pauseImg.setImageResource(R.drawable.playing_run);
+//        else pauseImg.setImageResource(R.drawable.playing_pause);
     }
 
     private void freshSeekBar() {
-        seekBar.setProgress(mPlayer.getCurDuration());
-        duration.setText(calcTime(mPlayer.getDuration()));
-        curDuration.setText(calcTime(mPlayer.getCurDuration()));
+//        seekBar.setProgress(mPlayer.getCurDuration());
+//        duration.setText(timeToString(mPlayer.getDuration()));
+//        curDuration.setText(timeToString(mPlayer.getCurDuration()));
     }
 
-    private String calcTime(int t) {
+    private String timeToString(int t) {
         String sMin, sSec;
         sMin = String.valueOf((t / 1000 / 60));
         sSec = String.valueOf((t / 1000 % 60));
@@ -263,15 +266,21 @@ public class PlayActivity extends Activity implements View.OnClickListener {
 
     @Override
     protected void onResume() {
-        startThread();
         super.onResume();
+        intent = new Intent(this, PlayService.class);
+        startService(intent);
+        bindService(intent, conn, Context.BIND_AUTO_CREATE);
+
     }
 
     @Override
-    protected void onRestart() {
-        startThread();
-        super.onRestart();
+    protected void onStop() {
+        super.onStop();
+        boolean isPlay = mPlayer.isPlaying();
+        unbindService(conn);
+        if (!isPlay) {
+            stopService(intent);
+        }
     }
-
 }
 

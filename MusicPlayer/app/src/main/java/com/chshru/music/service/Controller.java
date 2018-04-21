@@ -1,5 +1,9 @@
 package com.chshru.music.service;
 
+import android.media.MediaPlayer;
+
+import com.chshru.music.datautil.Player;
+
 /**
  * Created by abc on 18-4-20.
  */
@@ -21,4 +25,6 @@ public interface Controller {
     void start();
 
     void pause();
+
+    void setPreparedListener(MediaPlayer.OnPreparedListener listener);
 }

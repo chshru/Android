@@ -11,12 +11,13 @@
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
+        android:name=".AppContext"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppBaseTheme">
         <activity
-            android:name="com.chshru.music.activity.ListActivity"
+            android:name="com.chshru.music.ListActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -24,10 +25,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.chshru.music.activity.SetActivity"
-            android:exported="true" />
-        <activity
-            android:name="com.chshru.music.activity.PlayActivity"
+            android:name="com.chshru.music.PlayActivity"
             android:exported="true" />
 
         <service

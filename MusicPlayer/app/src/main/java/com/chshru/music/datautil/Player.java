@@ -1,5 +1,9 @@
 package com.chshru.music.datautil;
 
+import android.app.Activity;
+import android.media.MediaPlayer;
+
+import com.chshru.music.AppContext;
 import com.chshru.music.service.Controller;
 
 import java.util.ArrayList;
@@ -8,16 +12,27 @@ import java.util.ArrayList;
  * Created by chshru on 2017/5/16.
  */
 
-public class Player {
+public class Player implements MediaPlayer.OnPreparedListener {
 
     private Controller mPlayer;
     private MusicList mList;
     private ArrayList<MusicListener> listener;
+    private Activity mActivity;
 
     public Player(Controller service, MusicList list) {
         mPlayer = service;
+        mPlayer.setPreparedListener(this);
         mList = list;
         listener = new ArrayList<>();
+
+    }
+
+    public void setActivity(Activity activity) {
+        mActivity = activity;
+    }
+
+    public int getPosition() {
+        return ((AppContext) mActivity.getApplication()).getPos();
     }
 
     public void addMusicListener(MusicListener listener) {
@@ -42,11 +57,17 @@ public class Player {
     }
 
     public void choose(int p) {
-        pause();
+        ((AppContext) mActivity.getApplication()).setPos(p);
+        mPlayer.pause();
         String path = mList.getList().get(p).getPath();
         prepare(path);
-        start();
-        notifyChange(p);
+
+    }
+
+    @Override
+    public void onPrepared(MediaPlayer mp) {
+        mPlayer.start();
+        notifyChange();
     }
 
     public boolean isPlaying() {
@@ -64,7 +85,7 @@ public class Player {
     }
 
 
-    public void prepare(String path) {
+    private void prepare(String path) {
         mPlayer.prepare(path);
     }
 
@@ -77,27 +98,23 @@ public class Player {
         notifyChange();
     }
 
+
     private void notifyChange() {
         for (MusicListener ml : listener) {
             if (ml != null) {
+                ml.onPlayerPositionChange();
                 ml.onPlayerStatusChange();
             }
         }
     }
 
-    private void notifyChange(int pos) {
-        for (MusicListener ml : listener) {
-            if (ml != null) {
-                ml.onPlayerPositionChange(pos);
-            }
-        }
-    }
+
 
     public interface MusicListener {
 
         void onPlayerStatusChange();
 
-        void onPlayerPositionChange(int pos);
+        void onPlayerPositionChange();
     }
 
 }
