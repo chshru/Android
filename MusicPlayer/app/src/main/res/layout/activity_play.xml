@@ -62,32 +62,38 @@
             android:gravity="center"
             android:orientation="horizontal">
 
+            <View
+                android:layout_width="10dp"
+                android:layout_height="match_parent" />
 
             <TextView
                 android:id="@+id/playing_current"
-                android:layout_width="45dp"
-                android:layout_height="30dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:gravity="center"
                 android:textColor="@color/my_white_color"
                 android:textSize="15sp" />
 
             <SeekBar
                 android:id="@+id/playing_seek_bar"
-                android:layout_width="235dp"
-                android:layout_height="30dp"
+                android:layout_width="230dp"
+                android:layout_height="match_parent"
                 android:paddingBottom="0dp"
-                android:paddingLeft="20dp"
-                android:paddingRight="20dp"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
                 android:paddingTop="0dp" />
-
 
             <TextView
                 android:id="@+id/playing_sum"
-                android:layout_width="45dp"
-                android:layout_height="30dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:gravity="center"
                 android:textColor="@color/my_white_color"
                 android:textSize="15sp" />
+
+            <View
+                android:layout_width="10dp"
+                android:layout_height="match_parent" />
         </LinearLayout>
     </LinearLayout>
 
