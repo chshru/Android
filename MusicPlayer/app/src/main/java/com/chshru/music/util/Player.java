@@ -31,6 +31,7 @@ public class Player implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCom
         mPlayer = service;
         listener = new LinkedList<>();
         mPlayer.setPreparedListener(this);
+        mPlayer.setCompletionListener(this);
         init = true;
         mList = list;
         sp = mList.getContext().getSharedPreferences("user", Context.MODE_PRIVATE);

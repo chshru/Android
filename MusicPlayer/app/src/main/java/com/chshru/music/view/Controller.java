@@ -25,4 +25,6 @@ public interface Controller {
     void pause();
 
     void setPreparedListener(MediaPlayer.OnPreparedListener listener);
+
+    void setCompletionListener(MediaPlayer.OnCompletionListener listener);
 }

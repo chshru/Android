@@ -64,6 +64,10 @@ public class PlayService extends Service {
         }
     }
 
+    private void setCompletionListenerInService(MediaPlayer.OnCompletionListener listener) {
+        mPlayer.setOnCompletionListener(listener);
+    }
+
     private void setPreparedListenerInService(MediaPlayer.OnPreparedListener listener) {
         mPlayer.setOnPreparedListener(listener);
     }
@@ -140,6 +144,12 @@ public class PlayService extends Service {
         public void setPreparedListener(MediaPlayer.OnPreparedListener listener) {
             setPreparedListenerInService(listener);
         }
+
+        @Override
+        public void setCompletionListener(MediaPlayer.OnCompletionListener listener) {
+            setCompletionListenerInService(listener);
+        }
+
     }
 }
 

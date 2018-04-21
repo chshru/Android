@@ -26,7 +26,7 @@ public class MusicList {
         createMusicList();
     }
 
-    public Context getContext() {
+    Context getContext() {
         return mContext;
     }
 
