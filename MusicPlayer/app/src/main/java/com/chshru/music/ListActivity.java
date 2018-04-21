@@ -49,7 +49,14 @@ public class ListActivity extends Activity implements View.OnClickListener, Play
         pause = (ImageView) findViewById(R.id.pauseicon);
         list = (ListView) findViewById(R.id.musicList);
         VirtualKey.assistActivity(findViewById(R.id.musicList));
-        mList = MusicList.getInstance(getApplicationContext());
+        app = (AppContext) getApplication();
+        intent = new Intent(this, PlayService.class);
+        startService(intent);
+        if (app.getPlayer() != null) {
+            mList = app.getPlayer().getList();
+        } else {
+            mList = MusicList.getInstance(getApplicationContext());
+        }
         mAdapter = new ListAdapter(mList.getList(), this);
         list.setAdapter(mAdapter);
         initClickListener();
@@ -119,9 +126,6 @@ public class ListActivity extends Activity implements View.OnClickListener, Play
     @Override
     protected void onResume() {
         super.onResume();
-        app = (AppContext) getApplication();
-        intent = new Intent(this, PlayService.class);
-        startService(intent);
         bindService(intent, conn, Context.BIND_AUTO_CREATE);
     }
 

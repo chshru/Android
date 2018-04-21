@@ -22,7 +22,7 @@ public class ListAdapter extends BaseAdapter {
     private List<Music> lists;
     private Context context;
 
-    public ListAdapter(List<Music> lists, Context context) {
+    ListAdapter(List<Music> lists, Context context) {
         this.lists = lists;
         this.context = context;
     }
@@ -46,7 +46,7 @@ public class ListAdapter extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         ViewHolder viewHolder;
         if (convertView == null) {
-            convertView = LayoutInflater.from(context).inflate(R.layout.item_music,null);
+            convertView = LayoutInflater.from(context).inflate(R.layout.item_music, null);
             viewHolder = new ViewHolder();
             viewHolder.musicName = (TextView) convertView.findViewById(R.id.musicname);
             viewHolder.musicName.setText(lists.get(position).getName());

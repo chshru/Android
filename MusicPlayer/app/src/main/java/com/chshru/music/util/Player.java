@@ -37,6 +37,10 @@ public class Player implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCom
         index = sp.getInt(indexKey, 0);
     }
 
+    public MusicList getList() {
+        return mList;
+    }
+
     public void setController(Controller controller) {
         mPlayer = controller;
     }

@@ -14,22 +14,27 @@ public class Music {
         setArtist(artist);
     }
 
-    public String getArtist() {
+    String getArtist() {
         return artist;
     }
+
     public String getName() {
         return name;
     }
-    public String getPath() {
+
+    String getPath() {
         return path;
     }
-    public void setArtist(String artist) {
+
+    private void setArtist(String artist) {
         this.artist = artist;
     }
+
     public void setName(String name) {
         this.name = name;
     }
-    public void setPath(String path) {
+
+    private void setPath(String path) {
         this.path = path;
     }
 }
