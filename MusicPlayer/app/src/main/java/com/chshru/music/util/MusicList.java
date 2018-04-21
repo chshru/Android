@@ -26,6 +26,10 @@ public class MusicList {
         createMusicList();
     }
 
+    public Context getContext() {
+        return mContext;
+    }
+
     public static MusicList getInstance(Context context) {
         return new MusicList(context);
     }

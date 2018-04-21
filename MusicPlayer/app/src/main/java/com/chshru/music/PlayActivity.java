@@ -46,6 +46,7 @@ public class PlayActivity extends Activity implements View.OnClickListener, Play
     private ImageView nextImg;
     private Visualizer visualizer;
     private Equalizer equalizer;
+    private LinearLayout mLayout;
 
 
     private Player mPlayer;
@@ -116,9 +117,6 @@ public class PlayActivity extends Activity implements View.OnClickListener, Play
         curTime.setText(timeToString(mPlayer.getCurDuration()));
         seekBar.setMax(mPlayer.getDuration());
         seekBar.setProgress(mPlayer.getCurDuration());
-        if (!mPlayer.isPlaying()) {
-            return 500;
-        }
         return fresh;
     }
 
@@ -179,11 +177,6 @@ public class PlayActivity extends Activity implements View.OnClickListener, Play
         curTime = (TextView) findViewById(R.id.playing_current);
         time = (TextView) findViewById(R.id.playing_sum);
         seekBar = (SeekBar) findViewById(R.id.playing_seek_bar);
-        try {
-            initAudioFxUi();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     private void freeResource() {
@@ -196,6 +189,7 @@ public class PlayActivity extends Activity implements View.OnClickListener, Play
             equalizer.release();
             equalizer = null;
         }
+        mLayout.removeAllViews();
     }
 
 
@@ -210,25 +204,17 @@ public class PlayActivity extends Activity implements View.OnClickListener, Play
 
     private void initAudioFxUi() {
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
-        LinearLayout mLayout = (LinearLayout) findViewById(R.id.audio);
+        mLayout = (LinearLayout) findViewById(R.id.audio);
         mLayout.setOrientation(LinearLayout.VERTICAL);
         AudioView mAudio = new AudioView(this);
-        float VISUALIZER_HEIGHT_DIP = 200f;
-        mAudio.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                (int) (VISUALIZER_HEIGHT_DIP * getResources().getDisplayMetrics().density)));
-        mLayout.addView(mAudio);
+        LinearLayout.LayoutParams ll = new LinearLayout.LayoutParams(-1, -1);
+        mLayout.addView(mAudio, ll);
         visualizer = new Visualizer(mPlayer.getSessionId());
         visualizer.setCaptureSize(Visualizer.getCaptureSizeRange()[1]);
         mAudio.setVisualizer(visualizer);
         equalizer = new Equalizer(0, mPlayer.getSessionId());
         equalizer.setEnabled(true);
         visualizer.setEnabled(true);
-    }
-
-    @Override
-    protected void onDestroy() {
-        freeResource();
-        super.onDestroy();
     }
 
     @Override
@@ -247,6 +233,7 @@ public class PlayActivity extends Activity implements View.OnClickListener, Play
         super.onPause();
         unbindService(conn);
         mHandler.removeMessages(MSG_FRESH);
+        System.out.println();
     }
 
     @Override

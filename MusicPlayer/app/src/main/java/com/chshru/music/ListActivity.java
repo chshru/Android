@@ -77,18 +77,9 @@ public class ListActivity extends Activity implements View.OnClickListener, Play
         list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                mPlayer.choose(position);
-            }
-        });
-        list.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
-                DialogFactory.getInstance(ListActivity.this).tipsDialog(
-                        getString(R.string.file_path),
-                        MusicList.getInstance(ListActivity.this).getList().get(i).getPath(),
-                        getString(R.string.shutdown)
-                );
-                return true;
+                if (mPlayer.getPosition() != position) {
+                    mPlayer.choose(position);
+                }
             }
         });
     }
@@ -104,6 +95,7 @@ public class ListActivity extends Activity implements View.OnClickListener, Play
             } else {
                 mPlayer = new Player(mController, mList);
                 mPlayer.addMusicListener(ListActivity.this);
+                mPlayer.choose(mPlayer.getPosition());
                 app.setPlayer(mPlayer);
             }
             onPlayerStatusChange();
