@@ -6,6 +6,8 @@ import android.media.MediaPlayer;
 import android.os.Binder;
 import android.os.IBinder;
 
+import java.lang.ref.SoftReference;
+
 
 /**
  * Created by chshru on 2017/2/25.
@@ -21,7 +23,7 @@ public class PlayService extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         mPlayer = new MediaPlayer();
-        return new PlayBinder();
+        return new PlayBinder(this);
     }
 
     @Override
@@ -29,7 +31,7 @@ public class PlayService extends Service {
         return super.onStartCommand(intent, flags, startId);
     }
 
-    private int getAudioSessionIdInService() {
+    private int getAudioSessionId() {
         try {
             return mPlayer.getAudioSessionId();
         } catch (Exception e) {
@@ -37,23 +39,23 @@ public class PlayService extends Service {
         }
     }
 
-    private void seekToInService(int t) {
+    private void seekTo(int t) {
         mPlayer.seekTo(t);
     }
 
-    private boolean isPlayingInService() {
+    private boolean isPlaying() {
         return mPlayer.isPlaying();
     }
 
-    private int getDurationInService() {
+    private int getDuration() {
         return mPlayer.getDuration();
     }
 
-    private int getCurDurationInService() {
+    private int getCurDuration() {
         return mPlayer.getCurrentPosition();
     }
 
-    private void prepareInService(String path) {
+    private void prepare(String path) {
         try {
             mPlayer.stop();
             mPlayer.reset();
@@ -64,20 +66,20 @@ public class PlayService extends Service {
         }
     }
 
-    private void setCompletionListenerInService(MediaPlayer.OnCompletionListener listener) {
+    private void setCompletionListener(MediaPlayer.OnCompletionListener listener) {
         mPlayer.setOnCompletionListener(listener);
     }
 
-    private void setPreparedListenerInService(MediaPlayer.OnPreparedListener listener) {
+    private void setPreparedListener(MediaPlayer.OnPreparedListener listener) {
         mPlayer.setOnPreparedListener(listener);
     }
 
 
-    private void startInService() {
+    private void start() {
         mPlayer.start();
     }
 
-    private void pauseInService() {
+    private void pause() {
         mPlayer.pause();
     }
 
@@ -99,55 +101,60 @@ public class PlayService extends Service {
 
     public class PlayBinder extends Binder implements Controller {
 
+        SoftReference<PlayService> mService;
+
+        PlayBinder(PlayService service) {
+            mService = new SoftReference<>(service);
+        }
 
         @Override
         public int getAudioSessionId() {
-            return getAudioSessionIdInService();
+            return mService.get().getAudioSessionId();
         }
 
         @Override
         public void seekTo(int t) {
-            seekToInService(t);
+            mService.get().seekTo(t);
         }
 
         @Override
         public boolean isPlaying() {
-            return isPlayingInService();
+            return mService.get().isPlaying();
         }
 
         @Override
         public int getDuration() {
-            return getDurationInService();
+            return mService.get().getDuration();
         }
 
         @Override
         public int getCurDuration() {
-            return getCurDurationInService();
+            return mService.get().getCurDuration();
         }
 
         @Override
         public void prepare(String path) {
-            prepareInService(path);
+            mService.get().prepare(path);
         }
 
         @Override
         public void start() {
-            startInService();
+            mService.get().start();
         }
 
         @Override
         public void pause() {
-            pauseInService();
+            mService.get().pause();
         }
 
         @Override
         public void setPreparedListener(MediaPlayer.OnPreparedListener listener) {
-            setPreparedListenerInService(listener);
+            mService.get().setPreparedListener(listener);
         }
 
         @Override
         public void setCompletionListener(MediaPlayer.OnCompletionListener listener) {
-            setCompletionListenerInService(listener);
+            mService.get().setCompletionListener(listener);
         }
 
     }
