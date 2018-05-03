@@ -87,9 +87,13 @@ public class AudioView extends View implements Visualizer.OnDataCaptureListener 
 
     @Override
     public void onDraw(Canvas canvas) {
-        for (int i = 0; i < CYLINDER_NUM; i++) {
-            drawCylinder(canvas, strokeWidth / 2 + hGap + i * (hGap + strokeLength), mData[i]);
+        //for (int i = 0; i < CYLINDER_NUM; i++) {
+        //    drawCylinder(canvas, strokeWidth / 2 + hGap + i * (hGap + strokeLength), mData[i]);
+        //}
+        for (int i = 0; i < mData.length ; i++) {
+            System.out.print(mData[i]+" ");
         }
+        System.out.println();
     }
 
     /**
