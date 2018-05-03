@@ -61,7 +61,6 @@ public class PlayActivity extends Activity implements View.OnClickListener, Play
         setContentView(R.layout.activity_play);
         initializeView();
         initializeListener();
-
     }
 
     private void initializeListener() {
@@ -137,10 +136,12 @@ public class PlayActivity extends Activity implements View.OnClickListener, Play
             int temp = freshNow();
             mHandler.sendEmptyMessageDelayed(MSG_FRESH, temp);
             onPlayerStatusChange();
+            initAudioFxUi();
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
+            releaseAudioFxUi();
             mPlayer.removeMusicListener(PlayActivity.this);
             mController = null;
         }
@@ -211,11 +212,23 @@ public class PlayActivity extends Activity implements View.OnClickListener, Play
         LinearLayout.LayoutParams ll = new LinearLayout.LayoutParams(-1, -1);
         mLayout.addView(mAudio, ll);
         visualizer = new Visualizer(mPlayer.getSessionId());
-        visualizer.setCaptureSize(Visualizer.getCaptureSizeRange()[1]);
+        visualizer.setEnabled(false);        visualizer.setCaptureSize(Visualizer.getCaptureSizeRange()[1]);
         mAudio.setVisualizer(visualizer);
         equalizer = new Equalizer(0, mPlayer.getSessionId());
         equalizer.setEnabled(true);
         visualizer.setEnabled(true);
+    }
+
+    private void releaseAudioFxUi() {
+        if (visualizer != null) {
+            visualizer.release();
+            visualizer = null;
+        }
+        if (equalizer != null) {
+            equalizer.release();
+            equalizer = null;
+        }
+        mLayout.removeAllViews();
     }
 
     @Override
