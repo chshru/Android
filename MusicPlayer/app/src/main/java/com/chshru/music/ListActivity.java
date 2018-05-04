@@ -139,4 +139,9 @@ public class ListActivity extends Activity implements View.OnClickListener, Play
         name.setText(mPlayer.getCurName());
     }
 
+    @Override
+    public void setListenerStatus(boolean status) {
+
+    }
+
 }

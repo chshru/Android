@@ -92,7 +92,6 @@ public class Player implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCom
         String path = mList.getList().get(p).getPath();
         sp.edit().putInt(indexKey, index).apply();
         prepare(path);
-
     }
 
     @Override
@@ -150,10 +149,9 @@ public class Player implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCom
         next();
     }
 
-
     public interface MusicListener {
-
         void onPlayerStatusChange();
+        void setListenerStatus(boolean status);
     }
 
 }

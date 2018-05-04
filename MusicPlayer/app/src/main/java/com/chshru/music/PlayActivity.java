@@ -22,8 +22,8 @@ import android.widget.TextView;
 
 import com.chshru.music.util.Player;
 import com.chshru.music.util.MusicList;
-import com.chshru.music.view.AudioView;
 import com.chshru.music.view.Controller;
+import com.chshru.music.view.DynamicView;
 import com.chshru.music.view.PlayService;
 
 
@@ -32,7 +32,8 @@ import com.chshru.music.view.PlayService;
  */
 
 
-public class PlayActivity extends Activity implements View.OnClickListener, Player.MusicListener {
+public class PlayActivity extends Activity implements
+        View.OnClickListener, Player.MusicListener {
 
 
     private SeekBar seekBar;
@@ -47,11 +48,11 @@ public class PlayActivity extends Activity implements View.OnClickListener, Play
     private Equalizer equalizer;
     private LinearLayout mLayout;
 
-
+    private boolean mNeedFresh;
     private Player mPlayer;
     private Controller mController;
     private AppContext app;
-    private int fresh = 100;
+    private int fresh = 500;
 
 
     @Override
@@ -64,6 +65,8 @@ public class PlayActivity extends Activity implements View.OnClickListener, Play
     }
 
     private void initializeListener() {
+
+        mNeedFresh = false;
         nextImg.setOnClickListener(this);
         preImg.setOnClickListener(this);
         pauseImg.setOnClickListener(this);
@@ -88,7 +91,7 @@ public class PlayActivity extends Activity implements View.OnClickListener, Play
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                fresh = 100;
+                fresh = 500;
                 if (flag) {
                     mPlayer.start();
                 }
@@ -208,16 +211,19 @@ public class PlayActivity extends Activity implements View.OnClickListener, Play
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
         mLayout = (LinearLayout) findViewById(R.id.audio);
         mLayout.setOrientation(LinearLayout.VERTICAL);
-        AudioView mAudio = new AudioView(this);
+        DynamicView mAudio = new DynamicView(this);
         LinearLayout.LayoutParams ll = new LinearLayout.LayoutParams(-1, -1);
         mLayout.addView(mAudio, ll);
+
         visualizer = new Visualizer(mPlayer.getSessionId());
-        visualizer.setEnabled(false);        visualizer.setCaptureSize(Visualizer.getCaptureSizeRange()[1]);
+        visualizer.setEnabled(false);
+        visualizer.setCaptureSize(Visualizer.getCaptureSizeRange()[1]);
         mAudio.setVisualizer(visualizer);
         equalizer = new Equalizer(0, mPlayer.getSessionId());
         equalizer.setEnabled(true);
         visualizer.setEnabled(true);
     }
+
 
     private void releaseAudioFxUi() {
         if (visualizer != null) {
@@ -238,7 +244,6 @@ public class PlayActivity extends Activity implements View.OnClickListener, Play
         Intent intent = new Intent(this, PlayService.class);
         startService(intent);
         bindService(intent, conn, Context.BIND_AUTO_CREATE);
-
     }
 
 
@@ -247,7 +252,6 @@ public class PlayActivity extends Activity implements View.OnClickListener, Play
         super.onPause();
         unbindService(conn);
         mHandler.removeMessages(MSG_FRESH);
-        System.out.println();
     }
 
     @Override
@@ -258,6 +262,18 @@ public class PlayActivity extends Activity implements View.OnClickListener, Play
         pauseImg.setImageResource(res);
         name.setText(mPlayer.getCurName());
         artist.setText(mPlayer.getCurArtist());
+        if (mNeedFresh) {
+            mHandler.sendEmptyMessage(MSG_FRESH);
+        }
+    }
+
+    @Override
+    public void setListenerStatus(boolean status) {
+        if (status) {
+            mHandler.sendEmptyMessage(MSG_FRESH);
+        } else {
+            mHandler.removeMessages(MSG_FRESH);
+        }
     }
 }
 
