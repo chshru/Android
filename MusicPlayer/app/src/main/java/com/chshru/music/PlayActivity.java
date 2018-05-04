@@ -144,7 +144,6 @@ public class PlayActivity extends Activity implements
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-            releaseAudioFxUi();
             mPlayer.removeMusicListener(PlayActivity.this);
             mController = null;
         }
@@ -214,14 +213,8 @@ public class PlayActivity extends Activity implements
         DynamicView mAudio = new DynamicView(this);
         LinearLayout.LayoutParams ll = new LinearLayout.LayoutParams(-1, -1);
         mLayout.addView(mAudio, ll);
-
         visualizer = new Visualizer(mPlayer.getSessionId());
-        visualizer.setEnabled(false);
-        visualizer.setCaptureSize(Visualizer.getCaptureSizeRange()[1]);
         mAudio.setVisualizer(visualizer);
-        equalizer = new Equalizer(0, mPlayer.getSessionId());
-        equalizer.setEnabled(true);
-        visualizer.setEnabled(true);
     }
 
 
@@ -252,6 +245,7 @@ public class PlayActivity extends Activity implements
         super.onPause();
         unbindService(conn);
         mHandler.removeMessages(MSG_FRESH);
+        releaseAudioFxUi();
     }
 
     @Override
