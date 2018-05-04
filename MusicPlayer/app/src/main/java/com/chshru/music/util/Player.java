@@ -51,11 +51,17 @@ public class Player implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCom
     }
 
     public String getCurName() {
-        return mList.getList().get(index).getName();
+        if (index < mList.getList().size()) {
+            return mList.getList().get(index).getName();
+        }
+        return "";
     }
 
     public String getCurArtist() {
-        return mList.getList().get(index).getArtist();
+        if (index < mList.getList().size()) {
+            return mList.getList().get(index).getArtist();
+        }
+        return "";
     }
 
     public void addMusicListener(MusicListener listener) {
@@ -87,8 +93,10 @@ public class Player implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCom
 
     public void choose(int p) {
         index = p;
+        if (p >= mList.getList().size()) {
+            return;
+        }
         mPlayer.pause();
-
         String path = mList.getList().get(p).getPath();
         sp.edit().putInt(indexKey, index).apply();
         prepare(path);
@@ -151,6 +159,7 @@ public class Player implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCom
 
     public interface MusicListener {
         void onPlayerStatusChange();
+
         void setListenerStatus(boolean status);
     }
 
