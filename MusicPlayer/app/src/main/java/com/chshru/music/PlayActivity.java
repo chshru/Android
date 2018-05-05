@@ -215,6 +215,8 @@ public class PlayActivity extends Activity implements
         mLayout.addView(mAudio, ll);
         visualizer = new Visualizer(mPlayer.getSessionId());
         mAudio.setVisualizer(visualizer);
+        //equalizer = new Equalizer(0, mPlayer.getSessionId());
+        //equalizer.setEnabled(true);
     }
 
 

@@ -3,6 +3,7 @@ package com.chshru.music.view;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.media.AudioManager;
 import android.media.audiofx.Visualizer;
 import android.view.View;
 
@@ -16,23 +17,25 @@ public class DynamicView extends View implements Visualizer.OnDataCaptureListene
 
     private Paint paint;
     private int line;
-    private byte[] data;
-    private byte[] cache;
-
+    private float[] data;
+    private float[] cache;
+    private AudioManager am;
 
     public DynamicView(Context context) {
         super(context);
         paint = new Paint();
         paint.setAntiAlias(true);
         line = 20;
-        data = new byte[line];
-        cache = new byte[line];
+        data = new float[line];
+        cache = new float[line];
+        am = (AudioManager) getContext().
+                getSystemService(Context.AUDIO_SERVICE);
     }
 
 
     @Override
     protected void onDraw(Canvas canvas) {
-        int pw = getWidth() / (line + 4);
+        float pw = 1.0f * getWidth() / (1.0f * line + 4);
         paint.setStrokeWidth(pw);
         for (int i = 0; i < line; i++) {
             paint.setColor(0x55FFFFFF);
@@ -48,7 +51,7 @@ public class DynamicView extends View implements Visualizer.OnDataCaptureListene
                     getWidth() / line * (i + 0.5f),
                     getBottom() - getHeight() / (MAX * 1.5f) * (cache[i]),
                     getWidth() / line * (i + 0.5f),
-                    getBottom() - getHeight() / (MAX * 1.5f) * (cache[i] + pw / 6),
+                    getBottom() - getHeight() / (MAX * 1.5f) * (cache[i]) - (pw / 3),
                     paint
             );
         }
@@ -65,24 +68,31 @@ public class DynamicView extends View implements Visualizer.OnDataCaptureListene
         }
     }
 
-
     @Override
     public void onFftDataCapture(Visualizer visualizer, byte[] fft, int rate) {
-        byte[] model = new byte[fft.length / 2 + 1];
-        model[0] = (byte) Math.abs(fft[0]);
-        for (int j = 1, i = 2; i < fft.length; ) {
-            model[j] = (byte) Math.hypot(fft[i], fft[i + 1]);
-            i += 2;
-            j++;
+        float[] model = new float[fft.length / 2 + 1];
+        model[0] = Math.abs(fft[1]);
+        for (int i = 2, j = 1; i < fft.length; i += 2, j++) {
+            model[j] = (float) Math.hypot(fft[i], fft[i + 1]);
         }
-        fft[model.length - 1] = (byte) Math.abs(fft[1]);
+
+//        int cur = 0, max = 0;
+//        float mod = 0f;
+//        if (am != null) {
+//            max = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+//            cur = am.getStreamVolume(AudioManager.STREAM_MUSIC);
+//        }
+//        if (cur != 0 && max != 0) {
+//            mod = 1.0f * cur / max;
+//        }
 
         for (int i = 0; i < line; i++) {
-            data[i] = (byte) (Math.abs(model[line - i - 1]));
+            data[i] = Math.abs(model[line - i]) /*/ mod*/;
+
             if (data[i] > cache[i]) {
                 cache[i] = data[i];
             } else {
-                cache[i] -= cache[i] == 0 ? 0 : 2;
+                cache[i] -= cache[i] <= 0 ? 0 : 2;
             }
         }
         postInvalidate();
