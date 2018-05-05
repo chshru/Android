@@ -19,10 +19,14 @@ public class PlayService extends Service {
 
     private MediaPlayer mPlayer;
 
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        mPlayer = new MediaPlayer();
+    }
 
     @Override
     public IBinder onBind(Intent intent) {
-        mPlayer = new MediaPlayer();
         return new PlayBinder(this);
     }
 
