@@ -4,4 +4,7 @@
     <string name="shutdown">关闭</string>
     <string name="none_music">没有找到音乐</string>
     <string name="none_music_playing">NONE MUSIC</string>
+    <string name="permission_title">权限</string>
+    <string name="permission_content">不打开所有授权就别想用</string>
+    <string name="close">关闭</string>
 </resources>
