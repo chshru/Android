@@ -98,13 +98,12 @@ public class ListActivity extends Activity implements View.OnClickListener, Play
             if (app.getPlayer() != null) {
                 mPlayer = app.getPlayer();
                 mPlayer.setController(mController);
-                mPlayer.addMusicListener(ListActivity.this);
             } else {
                 mPlayer = new Player(mController, mList);
-                mPlayer.addMusicListener(ListActivity.this);
                 mPlayer.choose(mPlayer.getPosition());
                 app.setPlayer(mPlayer);
             }
+            mPlayer.addMusicListener(ListActivity.this);
             onPlayerStatusChange();
         }
 
