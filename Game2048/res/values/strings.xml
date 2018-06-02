@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">2048</string>
+    <string name="main_title">2048</string>
+    <string name="score">SCORE</string>
+    <string name="high_score">BEST</string>
+    <string name="restart">Reset</string>
+    <string name="set">Setting</string>
+    <string name="board">Board</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <drawable name="btn_normal">#d5cdc4</drawable>
+    <drawable name="btn_pressed">#bbada0</drawable>
+</resources>
